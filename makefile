@@ -106,7 +106,8 @@ HOBJS = $(HELM)/h3dcommon.o $(HELM)/h3dterms.o $(HELM)/h3dtrans.o \
 	$(HELM)/helmrouts3d.o $(HELM)/hfmm3d.o $(HELM)/hfmm3dwrap.o \
 	$(HELM)/hfmm3dwrap_legacy.o $(HELM)/hfmm3dwrap_vec.o $(HELM)/hpwrouts.o \
 	$(HELM)/hwts3e.o $(HELM)/hnumphys.o $(HELM)/hnumfour.o $(HELM)/projections.o \
-	$(HELM)/hfmm3d_mps.o $(HELM)/hfmm3d_memest.o $(HELM)/hfmm3d_ndiv.o
+	$(HELM)/hfmm3d_mps.o $(HELM)/hfmm3d_memest.o $(HELM)/hfmm3d_ndiv.o \
+	$(HELM)/h3ddiag.o
 
 # Laplace objects
 LAP = src/Laplace
@@ -274,7 +275,7 @@ python-dist: $(STATICLIB)
 
 # testing routines
 #
-test: $(STATICLIB) $(TOBJS) test/helmrouts test/hfmm3d test/hfmm3d_vec test/hfmm3d_scale test/laprouts test/lfmm3d test/lfmm3d_vec test_hfmm3d_mps test/lfmm3d_scale test/stfmm3d test/stokkernels test/stokkernels_rotlet_doublet test/emfmm3d
+test: $(STATICLIB) $(TOBJS) test/helmrouts test/h3ddiag test/hfmm3d test/hfmm3d_vec test/hfmm3d_scale test/laprouts test/lfmm3d test/lfmm3d_vec test_hfmm3d_mps test/lfmm3d_scale test/stfmm3d test/stokkernels test/stokkernels_rotlet_doublet test/emfmm3d
 	(cd test/Helmholtz; ./run_helmtest.sh)
 	(cd test/Laplace; ./run_laptest.sh)
 	(cd test/Stokes; ./run_stoktest.sh)
@@ -296,7 +297,7 @@ test-dyn: $(DYNAMICLIB) $(TOBJS) test/helmrouts-dyn test/hfmm3d-dyn test/hfmm3d_
 	rm print_testreshelm.txt
 	rm print_testreslap.txt
 
-test-ext: $(STATICLIB) $(TOBJS) test/helmrouts test/hfmm3d test/hfmm3d_vec test/hfmm3d_zkbig test/hfmm3d_scale test/laprouts test/lfmm3d test/lfmm3d_vec test_hfmm3d_mps test/lfmm3d_scale
+test-ext: $(STATICLIB) $(TOBJS) test/helmrouts test/h3ddiag test/hfmm3d test/hfmm3d_vec test/hfmm3d_zkbig test/hfmm3d_wideband test/hfmm3d_scale test/laprouts test/lfmm3d test/lfmm3d_vec test_hfmm3d_mps test/lfmm3d_scale
 	(cd test/Helmholtz; ./run_helmtest_ext.sh)
 	(cd test/Laplace; ./run_laptest.sh)
 	cat print_testreshelm.txt
@@ -307,11 +308,17 @@ test-ext: $(STATICLIB) $(TOBJS) test/helmrouts test/hfmm3d test/hfmm3d_vec test/
 test/helmrouts:
 	$(FC) $(FFLAGS) test/Helmholtz/test_helmrouts3d.f $(TOBJS) $(COMOBJS) $(HOBJS) -o test/Helmholtz/int2-test-helmrouts3d $(LIBS)
 
+test/h3ddiag:
+	$(FC) $(FFLAGS) test/Helmholtz/test_h3ddiag.f90 $(TOBJS) $(COMOBJS) $(HOBJS) -o test/Helmholtz/int2-test-h3ddiag $(LIBS)
+
 test/hfmm3d:
 	$(FC) $(FFLAGS) test/Helmholtz/test_hfmm3d.f $(TOBJS) $(COMOBJS) $(HOBJS) -o test/Helmholtz/int2-test-hfmm3d $(LIBS)
 
 test/hfmm3d_zkbig:
 	$(FC) $(FFLAGS) test/Helmholtz/test_hfmm3d_zkbig.f $(TOBJS) $(COMOBJS) $(HOBJS) -o test/Helmholtz/int2-test-hfmm3d-zkbig $(LIBS)
+
+test/hfmm3d_wideband:
+	$(FC) $(FFLAGS) test/Helmholtz/test_hfmm3d_wideband.f90 $(TOBJS) $(COMOBJS) $(HOBJS) -o test/Helmholtz/int2-test-hfmm3d-wideband $(LIBS)
 
 test/hfmm3d_scale:
 	$(FC) $(FFLAGS) test/Helmholtz/test_hfmm3d_scale.f $(TOBJS) $(COMOBJS) $(HOBJS) -o test/Helmholtz/int2-test-hfmm3d-scale $(LIBS)

@@ -744,6 +744,8 @@ c     end of list 4 variables
       integer *8 bigint
       double precision zkiupbound,zi,zkrupbound,rz
       integer *8 ilevcutoff
+      integer *8 ifdiag,nlterms,ierdiag
+      double precision zkdiagibound
 
       integer *8 iert
       data ima/(0.0d0,1.0d0)/
@@ -804,6 +806,11 @@ c
 
       zkiupbound = 12*pi
       zkrupbound = 16*pi
+c
+c     the diagonal form of the multipole to local translation is
+c     only used for (nearly) real Helmholtz parameters
+c
+      zkdiagibound = 1.0d0
       zi = dimag(zk)
 
       ilevcutoff = -1
@@ -1643,47 +1650,69 @@ C$OMP END PARALLEL DO
           call legewhts(nquad2,xnodes,wts,ifinit2)
 
           radius = boxsize(ilev)/2*sqrt(3.0d0)
+
+c
+c         use the diagonal form of the multipole to local
+c         translation if it is stable at this level, and
+c         rotate and shoot otherwise
+c
+          ifdiag = 0
+          if(real(zk2).gt.zkrupbound.and.
+     1        abs(dimag(zk2)).lt.zkdiagibound) then
+            call h3ddiagterms(boxsize(ilev),zk,eps,nterms(ilev),
+     1          nlterms,ierdiag)
+            if(ierdiag.eq.0) ifdiag = 1
+          endif
+
+          if(ifdiag.eq.1) then
+            if(ifprint.ge.1) print *, "Diagonal M2L, nlterms=",nlterms
+            call h3dmplocdiaglev(nd,zk,nterms(ilev),nlterms,
+     1          rscales(ilev),boxsize(ilev),laddr(1,ilev),
+     2          laddr(2,ilev),nboxes,centers,isrcse,itargse,iexpcse,
+     3          ifpgh,ifpghtarg,iaddr,rmlexp,mnlist2,nlist2,list2)
+          else
 C$OMP PARALLEL DO DEFAULT(SHARED)
 C$OMP$PRIVATE(ibox,istart,iend,npts,i,jbox)
-          do ibox = laddr(1,ilev),laddr(2,ilev)
-            npts = 0
-            if(ifpghtarg.gt.0) then
-              istart = itargse(1,ibox)
-              iend = itargse(2,ibox)
-              npts = npts + iend - istart + 1
-            endif
+            do ibox = laddr(1,ilev),laddr(2,ilev)
+              npts = 0
+              if(ifpghtarg.gt.0) then
+                istart = itargse(1,ibox)
+                iend = itargse(2,ibox)
+                npts = npts + iend - istart + 1
+              endif
 
-            istart = iexpcse(1,ibox)
-            iend = iexpcse(2,ibox)
-            npts = npts + iend-istart+1
-
-            if(ifpgh.gt.0) then
-              istart = isrcse(1,ibox)
-              iend = isrcse(2,ibox)
+              istart = iexpcse(1,ibox)
+              iend = iexpcse(2,ibox)
               npts = npts + iend-istart+1
-            endif
+
+              if(ifpgh.gt.0) then
+                istart = isrcse(1,ibox)
+                iend = isrcse(2,ibox)
+                npts = npts + iend-istart+1
+              endif
 
 
-            
-            if(npts.gt.0) then
-              do i=1,nlist2(ibox)
-                jbox = list2(i,ibox)
 
-                istart = isrcse(1,jbox)
-                iend = isrcse(2,jbox)
-                npts = iend-istart+1
+              if(npts.gt.0) then
+                do i=1,nlist2(ibox)
+                  jbox = list2(i,ibox)
 
-                if(npts.gt.0) then
-                  call h3dmploc(nd,zk,rscales(ilev),centers(1,jbox),
-     1                  rmlexp(iaddr(1,jbox)),nterms(ilev),
-     2                  rscales(ilev),centers(1,ibox),
-     2                  rmlexp(iaddr(2,ibox)),nterms(ilev),
-     3                  radius,xnodes,wts,nquad2)
-                endif
-              enddo
-            endif
-          enddo
-C$OMP END PARALLEL DO     
+                  istart = isrcse(1,jbox)
+                  iend = isrcse(2,jbox)
+                  npts = iend-istart+1
+
+                  if(npts.gt.0) then
+                    call h3dmploc(nd,zk,rscales(ilev),centers(1,jbox),
+     1                    rmlexp(iaddr(1,jbox)),nterms(ilev),
+     2                    rscales(ilev),centers(1,ibox),
+     2                    rmlexp(iaddr(2,ibox)),nterms(ilev),
+     3                    radius,xnodes,wts,nquad2)
+                  endif
+                enddo
+              endif
+            enddo
+C$OMP END PARALLEL DO
+          endif
 
 c
 c

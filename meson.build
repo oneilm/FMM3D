@@ -45,6 +45,7 @@ fmm_src = [
   'src/Helmholtz/helmrouts3d.f',
   'src/Helmholtz/h3dterms.f',
   'src/Helmholtz/projections.f',
+  'src/Helmholtz/h3ddiag.f90',
   'src/Helmholtz/hfmm3dwrap_vec.f',
   'src/Helmholtz/hfmm3d.f',
   'src/Helmholtz/hndiv.f',
