@@ -10,10 +10,11 @@
 ! subset of the targets.
 !
 program test_hfmm3d_wideband
+  use iso_fortran_env
   implicit none
-  integer(8) :: ntests, nsuccess, isucc, ik, iprec
-  real(8) :: eps
-  complex(8) :: zk
+  integer(int64) :: ntests, nsuccess, isucc, ik, iprec
+  real(real64) :: eps
+  complex(real64) :: zk
 
   ntests = 0
   nsuccess = 0
@@ -45,20 +46,21 @@ end program test_hfmm3d_wideband
 
 
 subroutine test_wideband(zk, eps, isuccess)
+  use iso_fortran_env
   implicit none
-  complex(8), intent(in) :: zk
-  real(8), intent(in) :: eps
-  integer(8), intent(out) :: isuccess
+  complex(real64), intent(in) :: zk
+  real(real64), intent(in) :: eps
+  integer(int64), intent(out) :: isuccess
 
-  integer(8) :: ns, nt, ntest, i, ier, nd
-  real(8) :: pi, thet, phi, thresh, err, ra, t0, t1
-  real(8), allocatable :: source(:,:), targ(:,:)
-  complex(8), allocatable :: charge(:), dipvec(:,:)
-  complex(8), allocatable :: pot(:), grad(:,:), pottarg(:), gradtarg(:,:)
-  complex(8), allocatable :: potex(:), gradex(:,:)
-  real(8), external :: hkrand
-  complex(8), parameter :: eye = (0.0d0,1.0d0)
-  !$ real(8), external :: omp_get_wtime
+  integer(int64) :: ns, nt, ntest, i, ier, nd
+  real(real64) :: pi, thet, phi, thresh, err, ra, t0, t1
+  real(real64), allocatable :: source(:,:), targ(:,:)
+  complex(real64), allocatable :: charge(:), dipvec(:,:)
+  complex(real64), allocatable :: pot(:), grad(:,:), pottarg(:), gradtarg(:,:)
+  complex(real64), allocatable :: potex(:), gradex(:,:)
+  real(real64), external :: hkrand
+  complex(real64), parameter :: eye = (0.0d0,1.0d0)
+  !$ real(real64), external :: omp_get_wtime
 
   pi = 4*atan(1.0d0)
   nd = 1

@@ -12,14 +12,16 @@
 !       + h3dsig2loc + h3dtaevalp
 !
 program test_h3ddiag
+  use iso_fortran_env
   implicit none
-  integer(8) :: ntests, nsuccess, isucc, ii, iprec, ioff
-  integer(8) :: ioffs(3,2)
-  real(8) :: pi, eps
-  complex(8) :: zk
+  integer(int64) :: ntests, nsuccess, isucc, ii, iprec, ioff
+  integer(int64) :: ioffs(3,2)
+  real(real64) :: pi, eps
+  complex(real64) :: zk, ima
 
   pi = 4*atan(1.0d0)
-
+  ima = (0,1)
+  
   ! closest list 2 translation and a generic one
   ioffs(:,1) = (/ 2, 0, 0 /)
   ioffs(:,2) = (/ 2, -1, 3 /)
@@ -32,7 +34,7 @@ program test_h3ddiag
   do ii = 1,3
     if (ii .eq. 1) zk = 20*pi
     if (ii .eq. 2) zk = 40*pi
-    if (ii .eq. 3) zk = 40*pi + dcmplx(0.0d0,0.1d0)
+    if (ii .eq. 3) zk = 40*pi + ima/10
     do iprec = 1,3
       if (iprec .eq. 1) eps = 1.0d-3
       if (iprec .eq. 2) eps = 1.0d-6
@@ -57,26 +59,29 @@ end program test_h3ddiag
 
 
 subroutine test_diag_m2l(zk, eps, ioff, isuccess)
+  use iso_fortran_env
   implicit none
-  complex(8), intent(in) :: zk
-  real(8), intent(in) :: eps
-  integer(8), intent(in) :: ioff(3)
-  integer(8), intent(out) :: isuccess
+  complex(real64), intent(in) :: zk
+  real(real64), intent(in) :: eps
+  integer(int64), intent(in) :: ioff(3)
+  integer(int64), intent(out) :: isuccess
 
-  integer(8) :: nd, ns, nt, nterms, nlterms, nth, nph, nsig, nquad
-  integer(8) :: nlege, lw, lused, i, j, ix, iy, iz, ifwhts, ier
-  real(8) :: bs, rscale, radius, thresh, ra, e1, e2
-  real(8) :: t0, t1, tpas, tm2s, tapp, ts2l
-  real(8) :: c1(3), c2(3), rvec(3)
-  real(8), allocatable :: sources(:,:), targs(:,:)
-  real(8), allocatable :: xnodes(:), wts(:), ynms(:,:,:)
-  real(8), allocatable :: xq(:), wq(:), wlege(:)
-  complex(8), allocatable :: charge(:), potex(:), pot1(:), pot2(:)
-  complex(8), allocatable :: mpole(:,:), loc1(:,:), loc2(:,:)
-  complex(8), allocatable :: ephs(:,:), sigout(:), sigin(:)
-  complex(8), allocatable :: trans(:)
-  real(8), external :: hkrand
+  integer(int64) :: nd, ns, nt, nterms, nlterms, nth, nph, nsig, nquad
+  integer(int64) :: nlege, lw, lused, i, j, ix, iy, iz, ifwhts, ier
+  real(real64) :: bs, rscale, radius, thresh, ra, e1, e2
+  real(real64) :: t0, t1, tpas, tm2s, tapp, ts2l
+  real(real64) :: c1(3), c2(3), rvec(3)
+  real(real64), allocatable :: sources(:,:), targs(:,:)
+  real(real64), allocatable :: xnodes(:), wts(:), ynms(:,:,:)
+  real(real64), allocatable :: xq(:), wq(:), wlege(:)
+  complex(real64), allocatable :: charge(:), potex(:), pot1(:), pot2(:)
+  complex(real64), allocatable :: mpole(:,:), loc1(:,:), loc2(:,:)
+  complex(real64), allocatable :: ephs(:,:), sigout(:), sigin(:)
+  complex(real64), allocatable :: trans(:)
+  complex(real64) :: ima
+  real(real64), external :: hkrand
 
+  ima = (0,1)
   nd = 1
   bs = 1.0d0
   rscale = 1.0d0
@@ -101,7 +106,7 @@ subroutine test_diag_m2l(zk, eps, ioff, isuccess)
     do j = 1,3
       sources(j,i) = c1(j) + (hkrand(0)-0.5d0)*bs
     end do
-    charge(i) = dcmplx(hkrand(0)-0.5d0, hkrand(0)-0.5d0)
+    charge(i) = hkrand(0)-0.5d0 + ima*( hkrand(0)-0.5d0)
   end do
 
   do i = 1,nt
@@ -116,11 +121,11 @@ subroutine test_diag_m2l(zk, eps, ioff, isuccess)
   ! box centers
   !
   do i = 1,8
-    sources(1,i) = c1(1) + (mod(i-1,2_8)-0.5d0)*bs
-    sources(2,i) = c1(2) + (mod((i-1)/2,2_8)-0.5d0)*bs
+    sources(1,i) = c1(1) + (mod(i-1,2_int64)-0.5d0)*bs
+    sources(2,i) = c1(2) + (mod((i-1)/2,2_int64)-0.5d0)*bs
     sources(3,i) = c1(3) + ((i-1)/4-0.5d0)*bs
-    targs(1,i) = c2(1) + (mod(i-1,2_8)-0.5d0)*bs
-    targs(2,i) = c2(2) + (mod((i-1)/2,2_8)-0.5d0)*bs
+    targs(1,i) = c2(1) + (mod(i-1,2_int64)-0.5d0)*bs
+    targs(2,i) = c2(2) + (mod((i-1)/2,2_int64)-0.5d0)*bs
     targs(3,i) = c2(3) + ((i-1)/4-0.5d0)*bs
   end do
   potex = 0

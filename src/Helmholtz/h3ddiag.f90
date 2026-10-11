@@ -118,20 +118,21 @@ subroutine h3ddiagterms(bs, zk, eps, nterms, nlterms, ier)
   !               ier = 0, diagonal form is stable at precision eps
   !               ier = 1, diagonal form is unstable at precision eps
   !
+  use iso_fortran_env
   implicit none
-  real(8), intent(in) :: bs, eps
-  complex(8), intent(in) :: zk
-  integer(8), intent(in) :: nterms
-  integer(8), intent(out) :: nlterms, ier
+  real(real64), intent(in) :: bs, eps
+  complex(real64), intent(in) :: zk
+  integer(int64), intent(in) :: nterms
+  integer(int64), intent(out) :: nlterms, ier
 
-  real(8), parameter :: ctrunc = 1.0d-3, cround = 1.0d-1
-  integer(8) :: ifder, l, lmin, lmax
-  real(8) :: epsmach, etrunc, eround, hsum
-  complex(8) :: z1, z2, fhder(0:1), fjder(0:1)
-  complex(8), allocatable :: hfun(:), jfun(:)
+  real(real64), parameter :: ctrunc = 1.0d-3, cround = 1.0d-1
+  integer(int64) :: ifder, l, lmin, lmax
+  real(real64) :: epsmach, etrunc, eround, hsum
+  complex(real64) :: z1, z2, fhder(0:1), fjder(0:1)
+  complex(real64), allocatable :: hfun(:), jfun(:)
 
   epsmach = epsilon(1.0d0)
-  lmax = max(2*nterms, 1_8)
+  lmax = max(2*nterms, 1_int64)
   allocate(hfun(0:lmax), jfun(0:lmax))
 
   z1 = zk*bs*2
@@ -180,16 +181,17 @@ subroutine h3ddiaggridsize(nterms, nlterms, nth, nph)
   !   nth     - number of Gauss-Legendre nodes in cos(theta)
   !   nph     - number of equispaced nodes in phi
   !
+  use iso_fortran_env
   implicit none
-  integer(8), intent(in) :: nterms, nlterms
-  integer(8), intent(out) :: nth, nph
+  integer(int64), intent(in) :: nterms, nlterms
+  integer(int64), intent(out) :: nth, nph
 
-  integer(8) :: ndeg
+  integer(int64) :: ndeg
 
   ndeg = 2*nterms + nlterms
   nth = ndeg/2 + 1
   nph = ndeg + 1
-  if (mod(nph,2_8) .eq. 1) nph = nph + 1
+  if (mod(nph,2_int64) .eq. 1) nph = nph + 1
 
   return
 end subroutine h3ddiaggridsize
@@ -215,15 +217,18 @@ subroutine h3ddiaginit(nterms, nth, nph, xnodes, wts, ynms, ephs)
   !   ynms   - ynms(n,m,i) = Y_n^m at cos(theta) = xnodes(i)
   !   ephs   - ephs(m,j) = e^{i m phi_j}
   !
+  use iso_fortran_env
   implicit none
-  integer(8), intent(in) :: nterms, nth, nph
-  real(8), intent(out) :: xnodes(nth), wts(nth)
-  real(8), intent(out) :: ynms(0:nterms,0:nterms,nth)
-  complex(8), intent(out) :: ephs(-nterms:nterms,nph)
+  integer(int64), intent(in) :: nterms, nth, nph
+  real(real64), intent(out) :: xnodes(nth), wts(nth)
+  real(real64), intent(out) :: ynms(0:nterms,0:nterms,nth)
+  complex(real64), intent(out) :: ephs(-nterms:nterms,nph)
 
-  integer(8) :: i, j, m, ifwhts
-  real(8) :: pi, phi
+  integer(int64) :: i, j, m, ifwhts
+  real(real64) :: pi, phi
+  complex(real64) :: ima
 
+  ima = (0,1)
   pi = 4*atan(1.0d0)
 
   ifwhts = 1
@@ -236,7 +241,7 @@ subroutine h3ddiaginit(nterms, nth, nph, xnodes, wts, ynms, ephs)
   do j = 1,nph
     phi = 2*pi*(j-1)/nph
     do m = -nterms,nterms
-      ephs(m,j) = dcmplx(cos(m*phi), sin(m*phi))
+      ephs(m,j) = exp(ima*m*phi)
     end do
   end do
 
@@ -268,16 +273,17 @@ subroutine h3dmp2sig(nd, nterms, rscale, mpole, nth, nph, ynms, &
   ! Output:
   !   sig     - far-field signature
   !
+  use iso_fortran_env
   implicit none
-  integer(8), intent(in) :: nd, nterms, nth, nph
-  real(8), intent(in) :: rscale, ynms(0:nterms,0:nterms,nth)
-  complex(8), intent(in) :: mpole(nd,0:nterms,-nterms:nterms)
-  complex(8), intent(in) :: ephs(-nterms:nterms,nph)
-  complex(8), intent(out) :: sig(nd,nph,nth)
+  integer(int64), intent(in) :: nd, nterms, nth, nph
+  real(real64), intent(in) :: rscale, ynms(0:nterms,0:nterms,nth)
+  complex(real64), intent(in) :: mpole(nd,0:nterms,-nterms:nterms)
+  complex(real64), intent(in) :: ephs(-nterms:nterms,nph)
+  complex(real64), intent(out) :: sig(nd,nph,nth)
 
-  integer(8) :: i, j, m, n
-  complex(8), allocatable :: fac(:), g(:,:), scmp(:,:,:)
-  complex(8), parameter :: eye = (0.0d0,1.0d0)
+  integer(int64) :: i, j, m, n
+  complex(real64), allocatable :: fac(:), g(:,:), scmp(:,:,:)
+  complex(real64), parameter :: eye = (0.0d0,1.0d0)
 
   allocate(fac(0:nterms), g(nd,-nterms:nterms))
   allocate(scmp(nd,0:nterms,-nterms:nterms))
@@ -340,17 +346,18 @@ subroutine h3dsig2loc(nd, nterms, rscale, sig, nth, nph, wts, ynms, &
   ! Input/output:
   !   local   - local expansion, incremented
   !
+  use iso_fortran_env
   implicit none
-  integer(8), intent(in) :: nd, nterms, nth, nph
-  real(8), intent(in) :: rscale, wts(nth)
-  real(8), intent(in) :: ynms(0:nterms,0:nterms,nth)
-  complex(8), intent(in) :: sig(nd,nph,nth), ephs(-nterms:nterms,nph)
-  complex(8), intent(inout) :: local(nd,0:nterms,-nterms:nterms)
+  integer(int64), intent(in) :: nd, nterms, nth, nph
+  real(real64), intent(in) :: rscale, wts(nth)
+  real(real64), intent(in) :: ynms(0:nterms,0:nterms,nth)
+  complex(real64), intent(in) :: sig(nd,nph,nth), ephs(-nterms:nterms,nph)
+  complex(real64), intent(inout) :: local(nd,0:nterms,-nterms:nterms)
 
-  integer(8) :: i, j, m, n
-  complex(8), allocatable :: fac(:), h(:,:), tmp(:,:,:)
-  complex(8), parameter :: eye = (0.0d0,1.0d0)
-  real(8) :: pi, dtmp
+  integer(int64) :: i, j, m, n
+  complex(real64), allocatable :: fac(:), h(:,:), tmp(:,:,:)
+  complex(real64), parameter :: eye = (0.0d0,1.0d0)
+  real(real64) :: pi, dtmp
 
   pi = 4*atan(1.0d0)
 
@@ -411,22 +418,23 @@ subroutine h3ddiagtrans(nlterms, zk, rvec, nth, nph, xnodes, trans)
   ! Output:
   !   trans   - transfer function, trans(nph,nth)
   !
+  use iso_fortran_env
   implicit none
-  integer(8), intent(in) :: nlterms, nth, nph
-  real(8), intent(in) :: rvec(3), xnodes(nth)
-  complex(8), intent(in) :: zk
-  complex(8), intent(out) :: trans(nph,nth)
+  integer(int64), intent(in) :: nlterms, nth, nph
+  real(real64), intent(in) :: rvec(3), xnodes(nth)
+  complex(real64), intent(in) :: zk
+  complex(real64), intent(out) :: trans(nph,nth)
 
-  integer(8) :: i, j, l, ifder
-  real(8) :: r, pi, phi, ct, st, x, pm1, p0, p1
-  complex(8), allocatable :: hfac(:)
-  complex(8) :: z, hder(0:1), ztmp
-  complex(8), parameter :: eye = (0.0d0,1.0d0)
+  integer(int64) :: i, j, l, ifder
+  real(real64) :: r, pi, phi, ct, st, x, pm1, p0, p1
+  complex(real64), allocatable :: hfac(:)
+  complex(real64) :: z, hder(0:1), ztmp
+  complex(real64), parameter :: eye = (0.0d0,1.0d0)
 
   pi = 4*atan(1.0d0)
 
   ! h3dall always computes h_0 and h_1
-  allocate(hfac(0:max(nlterms,1_8)))
+  allocate(hfac(0:max(nlterms,1_int64)))
 
   r = sqrt(rvec(1)**2 + rvec(2)**2 + rvec(3)**2)
   z = zk*r
@@ -483,15 +491,16 @@ subroutine h3ddiagtransall(nlterms, zk, bs, nth, nph, xnodes, trans)
   ! Output:
   !   trans   - transfer functions, trans(nph,nth,343)
   !
+  use iso_fortran_env
   implicit none
-  integer(8), intent(in) :: nlterms, nth, nph
-  real(8), intent(in) :: bs, xnodes(nth)
-  complex(8), intent(in) :: zk
-  complex(8), intent(out) :: trans(nph,nth,343)
+  integer(int64), intent(in) :: nlterms, nth, nph
+  real(real64), intent(in) :: bs, xnodes(nth)
+  complex(real64), intent(in) :: zk
+  complex(real64), intent(out) :: trans(nph,nth,343)
 
-  integer(8) :: ix, iy, iz, ind
-  integer(8), external :: h3ddiagind
-  real(8) :: rvec(3)
+  integer(int64) :: ix, iy, iz, ind
+  integer(int64), external :: h3ddiagind
+  real(real64) :: rvec(3)
 
   !$omp parallel do default(shared) private(ix,iy,iz,ind,rvec) &
   !$omp collapse(3) schedule(dynamic)
@@ -523,9 +532,10 @@ function h3ddiagind(ix, iy, iz)
   ! Index of the translation vector (ix,iy,iz), -3 <= ix,iy,iz <= 3,
   ! in the table of transfer functions.
   !
+  use iso_fortran_env
   implicit none
-  integer(8) :: h3ddiagind
-  integer(8), intent(in) :: ix, iy, iz
+  integer(int64) :: h3ddiagind
+  integer(int64), intent(in) :: ix, iy, iz
 
   h3ddiagind = (ix+3) + 7*(iy+3) + 49*(iz+3) + 1
 
@@ -542,12 +552,13 @@ subroutine h3ddiagapply(nd, nsig, trans, sigout, sigin)
   !
   !   sigin = sigin + trans .* sigout
   !
+  use iso_fortran_env
   implicit none
-  integer(8), intent(in) :: nd, nsig
-  complex(8), intent(in) :: trans(nsig), sigout(nd,nsig)
-  complex(8), intent(inout) :: sigin(nd,nsig)
+  integer(int64), intent(in) :: nd, nsig
+  complex(real64), intent(in) :: trans(nsig), sigout(nd,nsig)
+  complex(real64), intent(inout) :: sigin(nd,nsig)
 
-  integer(8) :: i
+  integer(int64) :: i
 
   do i = 1,nsig
     sigin(:,i) = sigin(:,i) + trans(i)*sigout(:,i)
@@ -590,7 +601,7 @@ subroutine h3dmplocdiaglev(nd, zk, nterms, nlterms, rscale, bs, &
   !   ifpgh     - flag for evaluation at sources
   !   ifpghtarg - flag for evaluation at targets
   !   iaddr     - addresses of the expansions in rmlexp, in units of
-  !               real(8), as set up by mpalloc
+  !               real(real64), as set up by mpalloc
   !   mnlist2   - leading dimension of list2
   !   nlist2    - number of boxes in list 2
   !   list2     - list 2 of each box
@@ -599,23 +610,24 @@ subroutine h3dmplocdiaglev(nd, zk, nterms, nlterms, rscale, bs, &
   !   rmlexp    - multipole and local expansions; the local
   !               expansions are incremented
   !
+  use iso_fortran_env
   implicit none
-  integer(8), intent(in) :: nd, nterms, nlterms, ibstart, ibend
-  integer(8), intent(in) :: nboxes, ifpgh, ifpghtarg, mnlist2
-  integer(8), intent(in) :: isrcse(2,nboxes), itargse(2,nboxes)
-  integer(8), intent(in) :: iexpcse(2,nboxes), iaddr(2,nboxes)
-  integer(8), intent(in) :: nlist2(nboxes), list2(mnlist2,nboxes)
-  real(8), intent(in) :: rscale, bs, centers(3,nboxes)
-  complex(8), intent(in) :: zk
-  complex(8), intent(inout) :: rmlexp(*)
+  integer(int64), intent(in) :: nd, nterms, nlterms, ibstart, ibend
+  integer(int64), intent(in) :: nboxes, ifpgh, ifpghtarg, mnlist2
+  integer(int64), intent(in) :: isrcse(2,nboxes), itargse(2,nboxes)
+  integer(int64), intent(in) :: iexpcse(2,nboxes), iaddr(2,nboxes)
+  integer(int64), intent(in) :: nlist2(nboxes), list2(mnlist2,nboxes)
+  real(real64), intent(in) :: rscale, bs, centers(3,nboxes)
+  complex(real64), intent(in) :: zk
+  complex(real64), intent(inout) :: rmlexp(*)
 
-  integer(8) :: nth, nph, nsig, nsrcbox, ibox, jbox, i, npts
-  integer(8) :: ix, iy, iz, ind, impole, ilocal
-  integer(8), external :: h3ddiagind
-  integer(8), allocatable :: isig(:)
-  real(8), allocatable :: xnodes(:), wts(:), ynms(:,:,:)
-  complex(8), allocatable :: ephs(:,:), trans(:,:), sigout(:,:)
-  complex(8), allocatable :: sigin(:)
+  integer(int64) :: nth, nph, nsig, nsrcbox, ibox, jbox, i, npts
+  integer(int64) :: ix, iy, iz, ind, impole, ilocal
+  integer(int64), external :: h3ddiagind
+  integer(int64), allocatable :: isig(:)
+  real(real64), allocatable :: xnodes(:), wts(:), ynms(:,:,:)
+  complex(real64), allocatable :: ephs(:,:), trans(:,:), sigout(:,:)
+  complex(real64), allocatable :: sigin(:)
 
   call h3ddiaggridsize(nterms, nlterms, nth, nph)
   nsig = nth*nph
