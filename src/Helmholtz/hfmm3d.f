@@ -1027,7 +1027,13 @@ C$    time1=omp_get_wtime()
 c
 
 
-      do ilev=nlevels-1,1,-1
+c
+c     boxes on level 1 have no boxes in list 2, and boxes in list 3
+c     are on level 2 or finer, so the multipole expansions of
+c     boxes on level 1 with children are never used and the merge
+c     stops at level 2
+c
+      do ilev=nlevels-1,2,-1
         if(ilev.gt.ilevcutoff) then
           nquad2 = nterms(ilev)*2.5
           nquad2 = max(6,nquad2)
@@ -1932,7 +1938,12 @@ C$    time2=omp_get_wtime()
 
       call cpu_time(time1)
 C$        time1=omp_get_wtime()
-      do ilev = 1,nlevels-1
+c
+c     boxes on level 1 have no boxes in list 2 or list 4, so
+c     their local expansions are zero and the split starts at
+c     level 2
+c
+      do ilev = 2,nlevels-1
         if(ilev.gt.ilevcutoff) then
           nquad2 = nterms(ilev)*2
           nquad2 = max(6,nquad2)

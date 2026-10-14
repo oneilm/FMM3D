@@ -8,8 +8,12 @@
 !
 !   (1) direct evaluation
 !   (2) h3dformmpc + h3dmploc + h3dtaevalp
-!   (3) h3dformmpc + h3dmp2sig + h3ddiagtrans + h3ddiagapply
-!       + h3dsig2loc + h3dtaevalp
+!   (3) h3dformmpc + h3dmp2sig + h3ddiagtab + h3ddiagtranstab
+!       + h3ddiagapply + h3dsig2loc + h3dtaevalp
+!
+! The transfer function interpolated from the one-dimensional table
+! (h3ddiagtab, h3ddiagtranstab) is also compared with the direct
+! evaluation of its Legendre series (h3ddiagtrans).
 !
 program test_h3ddiag
   use iso_fortran_env
@@ -68,7 +72,9 @@ subroutine test_diag_m2l(zk, eps, ioff, isuccess)
 
   integer(int64) :: nd, ns, nt, nterms, nlterms, nth, nph, nsig, nquad
   integer(int64) :: nlege, lw, lused, i, j, ix, iy, iz, ifwhts, ier
-  real(real64) :: bs, rscale, radius, thresh, ra, e1, e2
+  integer(int64) :: norder, npan
+  real(real64) :: bs, rscale, radius, thresh, ra, e1, e2, etab
+  real(real64) :: pi, phi
   real(real64) :: t0, t1, tpas, tm2s, tapp, ts2l
   real(real64) :: c1(3), c2(3), rvec(3)
   real(real64), allocatable :: sources(:,:), targs(:,:)
@@ -76,8 +82,10 @@ subroutine test_diag_m2l(zk, eps, ioff, isuccess)
   real(real64), allocatable :: xq(:), wq(:), wlege(:)
   complex(real64), allocatable :: charge(:), potex(:), pot1(:), pot2(:)
   complex(real64), allocatable :: mpole(:,:), loc1(:,:), loc2(:,:)
-  complex(real64), allocatable :: ephs(:,:), sigout(:), sigin(:)
-  complex(real64), allocatable :: trans(:)
+  real(real64), allocatable :: wsave(:)
+  complex(real64), allocatable :: sigout(:), sigin(:)
+  complex(real64), allocatable :: trans(:), trans0(:), coefs(:,:,:)
+  real(real64), allocatable :: cphi(:), sphi(:)
   complex(real64) :: ima
   real(real64), external :: hkrand
 
@@ -174,13 +182,30 @@ subroutine test_diag_m2l(zk, eps, ioff, isuccess)
   call h3ddiaggridsize(nterms, nlterms, nth, nph)
   nsig = nth*nph
   allocate(xnodes(nth), wts(nth), ynms(0:nterms,0:nterms,nth))
-  allocate(ephs(-nterms:nterms,nph))
-  allocate(sigout(nsig), sigin(nsig), trans(nsig))
-  call h3ddiaginit(nterms, nth, nph, xnodes, wts, ynms, ephs)
-  call h3ddiagtrans(nlterms, zk, rvec, nth, nph, xnodes, trans)
+  allocate(wsave(4*nph+20))
+  allocate(sigout(nsig), sigin(nsig), trans(nsig), trans0(nsig))
+  call h3ddiaginit(nterms, nth, nph, xnodes, wts, ynms, wsave)
+
+  ! transfer function from the one-dimensional table, as in the FMM
+  pi = 4*atan(1.0d0)
+  allocate(cphi(nph), sphi(nph))
+  do i = 1,nph
+    phi = 2*pi*(i-1)/nph
+    cphi(i) = cos(phi)
+    sphi(i) = sin(phi)
+  end do
+  call h3ddiagtabsize(nlterms, norder, npan)
+  allocate(coefs(norder,npan,2))
+  call h3ddiagtab(nlterms, zk, sqrt(sum(rvec**2)), norder, npan, coefs)
+  call h3ddiagtranstab(rvec, nth, nph, xnodes, cphi, sphi, norder, &
+      npan, coefs, trans)
+
+  ! compare with direct evaluation of the Legendre series
+  call h3ddiagtrans(nlterms, zk, rvec, nth, nph, xnodes, trans0)
+  etab = maxval(abs(trans-trans0))/maxval(abs(trans0))
 
   call cpu_time(t0)
-  call h3dmp2sig(nd, nterms, rscale, mpole, nth, nph, ynms, ephs, &
+  call h3dmp2sig(nd, nterms, rscale, mpole, nth, nph, ynms, wsave, &
       sigout)
   call cpu_time(t1)
   tm2s = t1-t0
@@ -193,7 +218,7 @@ subroutine test_diag_m2l(zk, eps, ioff, isuccess)
 
   call cpu_time(t0)
   call h3dsig2loc(nd, nterms, rscale, sigin, nth, nph, wts, ynms, &
-      ephs, loc2)
+      wsave, loc2)
   call cpu_time(t1)
   ts2l = t1-t0
 
@@ -213,6 +238,7 @@ subroutine test_diag_m2l(zk, eps, ioff, isuccess)
       '   diagonal: ', e2
   write(*,'(a,es10.3,a,3es10.3)') '   time rotate+shoot: ', tpas, &
       '   mp2sig, apply, sig2loc: ', tm2s, tapp, ts2l
+  write(*,'(a,es11.4)') '   transfer function, table vs direct: ', etab
 
   !
   ! if the diagonal form is flagged as unstable at this precision,
@@ -225,6 +251,7 @@ subroutine test_diag_m2l(zk, eps, ioff, isuccess)
   else if (e2 .lt. eps) then
     isuccess = 1
   end if
+  if (etab .gt. 1.0d-10) isuccess = 0
 
   return
 end subroutine test_diag_m2l

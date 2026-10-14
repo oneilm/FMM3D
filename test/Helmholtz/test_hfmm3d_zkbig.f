@@ -41,7 +41,7 @@
       subroutine test_helm_zkbig(zk,isuccess)
       
       implicit none
-      integer ns
+      integer *8 ns
       double precision, allocatable :: source(:,:)
       double complex, allocatable :: charge(:),dipvec(:,:)
       double complex, allocatable :: pot(:),potex(:)
@@ -49,7 +49,7 @@
 
       double precision eps
       double complex eye,zk
-      integer i,j,k,ntest
+      integer *8 i,j,k,ntest,nd,ier
       double precision hkrand,thresh,erra,ra
       integer isuccess
       
@@ -110,8 +110,9 @@ c
       enddo
 
 
+      ier = 0
       call hfmm3d_s_c_g(eps,zk,ns,source,charge,
-     1      pot,grad)
+     1      pot,grad,ier)
       ntest = 10
       allocate(potex(ntest),gradex(3,ntest))
 
@@ -124,7 +125,8 @@ c
         gradex(3,i) = 0
       enddo
 
-      call h3ddirectcg(1,zk,source,charge,ns,source,
+      nd = 1
+      call h3ddirectcg(nd,zk,source,charge,ns,source,
      1  ntest,potex,gradex,thresh)
 
       erra = 0
@@ -147,7 +149,7 @@ c
 
       isuccess = 0
 
-      if(erra.lt.eps) isuccess = 1
+      if(ier.eq.0.and.erra.lt.eps) isuccess = 1
       
 
       return

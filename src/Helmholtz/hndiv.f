@@ -5,34 +5,37 @@ c
 c       this subroutine estimates ndiv and idivflag 
 c       based on geometry parameters
 c     
-c       TODO: better way to choose ndiv based on boxsize
+c       ndiv depends only on the precision. It is not increased
+c       with the size of the domain in wavelengths (dbsize, which
+c       is unused): with the diagonal form of the multipole to
+c       local translation at high frequency, a deeper tree is
+c       cheaper than the extra direct interactions of large leaf
+c       boxes.
 c
 c
       implicit none
-      real *8 eps,dbsize,rfac
+      real *8 eps,dbsize
       integer *8 ns,nt,ifcharge,ifdipole,ifpgh,ifpghtarg,ndiv
       integer *8 idivflag
 
       idivflag = 0
-      rfac = 1.0d0
-      if (dbsize.gt.8) rfac = (dbsize/8)**1.5d0
 
        if(eps.ge.0.5d-0) then
-         ndiv = ceiling(40*rfac)
+         ndiv = 40
        else if(eps.ge.0.5d-1) then
-         ndiv = ceiling(40*rfac)
+         ndiv = 40
        else if(eps.ge.0.5d-2) then
-         ndiv = ceiling(40*rfac)
+         ndiv = 40
        else if(eps.ge.0.5d-3) then
-         ndiv = ceiling(120*rfac)
+         ndiv = 120
        else if(eps.ge.0.5d-6) then
-         ndiv = ceiling(300*rfac)
+         ndiv = 300
        else if(eps.ge.0.5d-9) then
-         ndiv = ceiling(600*rfac)
+         ndiv = 600
        else if(eps.ge.0.5d-12) then
-         ndiv = ceiling(900*rfac)
+         ndiv = 900
        else if(eps.ge.0.5d-15) then
-         ndiv = ceiling(1050*rfac)
+         ndiv = 1050
        else
          ndiv = ns+nt
        endif

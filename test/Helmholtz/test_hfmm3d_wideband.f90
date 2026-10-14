@@ -11,8 +11,10 @@
 !
 program test_hfmm3d_wideband
   use iso_fortran_env
+  !$ use omp_lib
   implicit none
   integer(int64) :: ntests, nsuccess, isucc, ik, iprec
+  integer(int64) :: ns, nt, ncores
   real(real64) :: eps
   complex(real64) :: zk
 
@@ -21,6 +23,19 @@ program test_hfmm3d_wideband
 
   call prini(6,13)
 
+  ns = 200000
+  nt = 200000
+
+  ncores = 1
+  !$ ncores = omp_get_max_threads()
+
+  write(*,'(a,i0,a,i0,a,i0)') ' ns = ', ns, ', nt = ', nt, &
+      ', cores (OpenMP threads) = ', ncores
+  write(*,'(a)') ' pts/sec = (ns + nt)/time'
+  write(*,*)
+  write(*,'(a16,a10,a12,a10,a13,a13)') 'zk (re,im)', 'eps', &
+      'rel err', 'time (s)', 'pts/sec', 'pts/sec/core'
+
   do ik = 1,2
     if (ik .eq. 1) zk = 150.0d0
     if (ik .eq. 2) zk = 300.0d0
@@ -28,7 +43,7 @@ program test_hfmm3d_wideband
       if (iprec .eq. 1) eps = 0.51d-3
       if (iprec .eq. 2) eps = 0.51d-6
       if (iprec .eq. 3) eps = 0.51d-9
-      call test_wideband(zk, eps, isucc)
+      call test_wideband(zk, eps, ns, nt, ncores, isucc)
       ntests = ntests + 1
       nsuccess = nsuccess + isucc
     end do
@@ -45,28 +60,27 @@ end program test_hfmm3d_wideband
 
 
 
-subroutine test_wideband(zk, eps, isuccess)
+subroutine test_wideband(zk, eps, ns, nt, ncores, isuccess)
   use iso_fortran_env
+  !$ use omp_lib
   implicit none
   complex(real64), intent(in) :: zk
   real(real64), intent(in) :: eps
+  integer(int64), intent(in) :: ns, nt, ncores
   integer(int64), intent(out) :: isuccess
 
-  integer(int64) :: ns, nt, ntest, i, ier, nd
-  real(real64) :: pi, thet, phi, thresh, err, ra, t0, t1
+  integer(int64) :: ntest, i, ier, nd
+  real(real64) :: pi, thet, phi, thresh, err, ra, t0, t1, pps
   real(real64), allocatable :: source(:,:), targ(:,:)
   complex(real64), allocatable :: charge(:), dipvec(:,:)
   complex(real64), allocatable :: pot(:), grad(:,:), pottarg(:), gradtarg(:,:)
   complex(real64), allocatable :: potex(:), gradex(:,:)
   real(real64), external :: hkrand
   complex(real64), parameter :: eye = (0.0d0,1.0d0)
-  !$ real(real64), external :: omp_get_wtime
 
   pi = 4*atan(1.0d0)
   nd = 1
 
-  ns = 200000
-  nt = 100000
   ntest = 100
 
   allocate(source(3,ns), charge(ns), dipvec(3,ns))
@@ -121,8 +135,9 @@ subroutine test_wideband(zk, eps, isuccess)
   end do
   err = sqrt(err/ra)
 
-  write(*,'(a,2f9.2,a,es9.2,a,es11.4,a,f9.2,a)') ' zk=', zk, &
-      ' eps=', eps, ' rel err=', err, ' time=', t1-t0, ' s'
+  pps = (ns + nt)/(t1 - t0)
+  write(*,'(2f8.2,es10.2,es12.4,f10.2,2i13)') zk, eps, err, t1-t0, &
+      nint(pps, int64), nint(pps/ncores, int64)
 
   isuccess = 0
   if (ier .eq. 0 .and. err .lt. eps) isuccess = 1
