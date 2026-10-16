@@ -947,6 +947,7 @@ c       form multipole expansions
           if(ifcharge.eq.1.and.ifdipole.eq.0) then
 C$OMP PARALLEL DO DEFAULT(SHARED)
 C$OMP$PRIVATE(ibox,npts,istart,iend,nchild)
+C$OMP$SCHEDULE(DYNAMIC)
             do ibox=laddr(1,ilev),laddr(2,ilev)
               istart = isrcse(1,ibox)
               iend = isrcse(2,ibox)
@@ -967,6 +968,7 @@ C$OMP END PARALLEL DO
           if(ifcharge.eq.0.and.ifdipole.eq.1) then
 C$OMP PARALLEL DO DEFAULT(SHARED)
 C$OMP$PRIVATE(ibox,npts,istart,iend,nchild)
+C$OMP$SCHEDULE(DYNAMIC)
             do ibox=laddr(1,ilev),laddr(2,ilev)
               istart = isrcse(1,ibox)
               iend = isrcse(2,ibox)
@@ -988,6 +990,7 @@ C$OMP END PARALLEL DO
           if(ifdipole.eq.1.and.ifcharge.eq.1) then
 C$OMP PARALLEL DO DEFAULT(SHARED)
 C$OMP$PRIVATE(ibox,npts,istart,iend,nchild)
+C$OMP$SCHEDULE(DYNAMIC)
             do ibox=laddr(1,ilev),laddr(2,ilev)
               istart = isrcse(1,ibox)
               iend = isrcse(2,ibox)
@@ -1030,6 +1033,7 @@ c
 
 C$OMP PARALLEL DO DEFAULT(SHARED)
 C$OMP$PRIVATE(ibox,i,jbox,istart,iend,npts)
+C$OMP$SCHEDULE(DYNAMIC)
           do ibox = laddr(1,ilev),laddr(2,ilev)
             do i=1,8
               jbox = itree(ipointer(5)+8*(ibox-1)+i-1)
@@ -1243,6 +1247,7 @@ c
 C$OMP PARALLEL DO DEFAULT (SHARED)
 C$OMP$PRIVATE(ibox,istart,iend,npts,iboxlev)
 C$OMP$PRIVATE(ithd)
+C$OMP$SCHEDULE(DYNAMIC)
           do ibox = laddr(1,ilev),laddr(2,ilev)
             ithd = 0
 C$          ithd=omp_get_thread_num()
@@ -1328,6 +1333,7 @@ C$OMP$PRIVATE(nw24,nw68,ne1,ne3,ne5,ne7)
 C$OMP$PRIVATE(nw2,nw4,nw6,nw8)
 C$OMP$PRIVATE(npts0,ctmp,jstart,jend,i)
 C$OMP$PRIVATE(ithd)
+C$OMP$SCHEDULE(DYNAMIC)
           do ibox = laddr(1,ilev-1),laddr(2,ilev-1)
             ithd = 0
 C$          ithd=omp_get_thread_num()
@@ -1645,6 +1651,7 @@ C$OMP END PARALLEL DO
           radius = boxsize(ilev)/2*sqrt(3.0d0)
 C$OMP PARALLEL DO DEFAULT(SHARED)
 C$OMP$PRIVATE(ibox,istart,iend,npts,i,jbox)
+C$OMP$SCHEDULE(DYNAMIC)
           do ibox = laddr(1,ilev),laddr(2,ilev)
             npts = 0
             if(ifpghtarg.gt.0) then
@@ -1913,6 +1920,7 @@ C$        time1=omp_get_wtime()
 
 C$OMP PARALLEL DO DEFAULT(SHARED)
 C$OMP$PRIVATE(ibox,i,jbox,istart,iend,npts)
+C$OMP$SCHEDULE(DYNAMIC)
           do ibox = laddr(1,ilev),laddr(2,ilev)
 
             npts = 0
@@ -2099,6 +2107,7 @@ c         It is relevant only for qbx codes)
 C$OMP PARALLEL DO DEFAULT(SHARED)     
 C$OMP$PRIVATE(ibox,istarte,iende,i,jbox)
 C$OMP$PRIVATE(jstart,jend)
+C$OMP$SCHEDULE(DYNAMIC)
         do ibox = laddr(1,ilev),laddr(2,ilev)
           istarte = iexpcse(1,ibox)
           iende = iexpcse(2,ibox)
@@ -2131,6 +2140,7 @@ c
 C$OMP PARALLEL DO DEFAULT(SHARED)     
 C$OMP$PRIVATE(ibox,istarts,iends,npts0,i,jbox,jstart,jend,npts)
 C$OMP$REDUCTION(+:ntotl1)
+C$OMP$SCHEDULE(DYNAMIC)
             do ibox = laddr(1,ilev),laddr(2,ilev)
               istarts = isrcse(1,ibox)
               iends = isrcse(2,ibox)
@@ -2154,6 +2164,7 @@ C$OMP END PARALLEL DO
           if(ifcharge.eq.0.and.ifdipole.eq.1) then
 C$OMP PARALLEL DO DEFAULT(SHARED)     
 C$OMP$PRIVATE(ibox,istarts,iends,npts0,i,jbox,jstart,jend,npts)
+C$OMP$SCHEDULE(DYNAMIC)
             do ibox = laddr(1,ilev),laddr(2,ilev)
               istarts = isrcse(1,ibox)
               iends = isrcse(2,ibox)
@@ -2175,6 +2186,7 @@ C$OMP END PARALLEL DO
           if(ifcharge.eq.1.and.ifdipole.eq.1) then
 C$OMP PARALLEL DO DEFAULT(SHARED)     
 C$OMP$PRIVATE(ibox,istarts,iends,npts0,i,jbox,jstart,jend,npts)
+C$OMP$SCHEDULE(DYNAMIC)
             do ibox = laddr(1,ilev),laddr(2,ilev)
               istarts = isrcse(1,ibox)
               iends = isrcse(2,ibox)
@@ -2199,6 +2211,7 @@ C$OMP END PARALLEL DO
           if(ifcharge.eq.1.and.ifdipole.eq.0) then
 C$OMP PARALLEL DO DEFAULT(SHARED)     
 C$OMP$PRIVATE(ibox,istarts,iends,npts0,i,jbox,jstart,jend,npts)
+C$OMP$SCHEDULE(DYNAMIC)
             do ibox = laddr(1,ilev),laddr(2,ilev)
               istarts = isrcse(1,ibox)
               iends = isrcse(2,ibox)
@@ -2221,6 +2234,7 @@ C$OMP END PARALLEL DO
           if(ifcharge.eq.0.and.ifdipole.eq.1) then
 C$OMP PARALLEL DO DEFAULT(SHARED)     
 C$OMP$PRIVATE(ibox,istarts,iends,npts0,i,jbox,jstart,jend,npts)
+C$OMP$SCHEDULE(DYNAMIC)
             do ibox = laddr(1,ilev),laddr(2,ilev)
               istarts = isrcse(1,ibox)
               iends = isrcse(2,ibox)
@@ -2242,6 +2256,7 @@ C$OMP END PARALLEL DO
           if(ifcharge.eq.1.and.ifdipole.eq.1) then
 C$OMP PARALLEL DO DEFAULT(SHARED)     
 C$OMP$PRIVATE(ibox,istarts,iends,npts0,i,jbox,jstart,jend,npts)
+C$OMP$SCHEDULE(DYNAMIC)
             do ibox = laddr(1,ilev),laddr(2,ilev)
               istarts = isrcse(1,ibox)
               iends = isrcse(2,ibox)
@@ -2266,6 +2281,7 @@ C$OMP END PARALLEL DO
           if(ifcharge.eq.1.and.ifdipole.eq.0) then
 C$OMP PARALLEL DO DEFAULT(SHARED)     
 C$OMP$PRIVATE(ibox,istartt,iendt,npts0,i,jbox,jstart,jend,npts)
+C$OMP$SCHEDULE(DYNAMIC)
             do ibox = laddr(1,ilev),laddr(2,ilev)
               istartt = itargse(1,ibox)
               iendt = itargse(2,ibox)
@@ -2288,6 +2304,7 @@ C$OMP END PARALLEL DO
           if(ifcharge.eq.0.and.ifdipole.eq.1) then
 C$OMP PARALLEL DO DEFAULT(SHARED)     
 C$OMP$PRIVATE(ibox,istartt,iendt,npts0,i,jbox,jstart,jend,npts)
+C$OMP$SCHEDULE(DYNAMIC)
             do ibox = laddr(1,ilev),laddr(2,ilev)
               istartt = itargse(1,ibox)
               iendt = itargse(2,ibox)
@@ -2309,6 +2326,7 @@ C$OMP END PARALLEL DO
           if(ifcharge.eq.1.and.ifdipole.eq.1) then
 C$OMP PARALLEL DO DEFAULT(SHARED)     
 C$OMP$PRIVATE(ibox,istartt,iendt,npts0,i,jbox,jstart,jend,npts)
+C$OMP$SCHEDULE(DYNAMIC)
             do ibox = laddr(1,ilev),laddr(2,ilev)
               istartt = itargse(1,ibox)
               iendt = itargse(2,ibox)
@@ -2333,6 +2351,7 @@ C$OMP END PARALLEL DO
           if(ifcharge.eq.1.and.ifdipole.eq.0) then
 C$OMP PARALLEL DO DEFAULT(SHARED)     
 C$OMP$PRIVATE(ibox,istartt,iendt,npts0,i,jbox,jstart,jend,npts)
+C$OMP$SCHEDULE(DYNAMIC)
             do ibox = laddr(1,ilev),laddr(2,ilev)
               istartt = itargse(1,ibox)
               iendt = itargse(2,ibox)
@@ -2356,6 +2375,7 @@ C$OMP END PARALLEL DO
           if(ifcharge.eq.0.and.ifdipole.eq.1) then
 C$OMP PARALLEL DO DEFAULT(SHARED)     
 C$OMP$PRIVATE(ibox,istartt,iendt,npts0,i,jbox,jstart,jend,npts)
+C$OMP$SCHEDULE(DYNAMIC)
             do ibox = laddr(1,ilev),laddr(2,ilev)
               istartt = itargse(1,ibox)
               iendt = itargse(2,ibox)
@@ -2378,6 +2398,7 @@ C$OMP END PARALLEL DO
           if(ifcharge.eq.1.and.ifdipole.eq.1) then
 C$OMP PARALLEL DO DEFAULT(SHARED)     
 C$OMP$PRIVATE(ibox,istartt,iendt,npts0,i,jbox,jstart,jend,npts)
+C$OMP$SCHEDULE(DYNAMIC)
             do ibox = laddr(1,ilev),laddr(2,ilev)
               istartt = itargse(1,ibox)
               iendt = itargse(2,ibox)
